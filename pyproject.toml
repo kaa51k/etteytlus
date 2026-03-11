@@ -1,0 +1,22 @@
+[project]
+name = "etteytlus"
+version = "0.1.0"
+description = "e-etteütlus AI competition pipeline — 4 AI models compete in Estonian dictation"
+requires-python = ">=3.10,<3.13"
+license = {text = "MIT"}
+authors = [{name = "Priit Kaasik"}]
+readme = "README.md"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "hardware: tests requiring physical hardware (mic, GPU)",
+]
+addopts = "-m 'not hardware'"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 70

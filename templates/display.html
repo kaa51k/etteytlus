@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eesti.ai — e-etteütlus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: #111;
+            border-bottom: 1px solid #222;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .logo span { color: #4a9eff; }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #555;
+            animation: none;
+        }
+        .status-dot.live {
+            background: #e53935;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .model-badge {
+            background: #1a3a5c;
+            color: #4a9eff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .mic-meter {
+            width: 60px;
+            height: 8px;
+            background: #222;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .mic-meter-fill {
+            height: 100%;
+            background: #4caf50;
+            transition: width 0.3s;
+            border-radius: 4px;
+        }
+        .mic-meter-fill.loud { background: #ff9800; }
+        .mic-meter-fill.clipping { background: #e53935; }
+
+        main {
+            flex: 1;
+            padding: 32px 24px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        #text-display {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #d0d0d0;
+            white-space: pre-wrap;
+            min-height: 200px;
+        }
+        #text-display:empty::before {
+            content: "Ootan etteütluse algust...";
+            color: #555;
+            font-style: italic;
+        }
+
+        .processing-indicator {
+            display: none;
+            margin-top: 16px;
+            padding: 8px 16px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #888;
+        }
+        .processing-indicator.active { display: inline-block; }
+
+        footer {
+            padding: 16px 24px;
+            background: #111;
+            border-top: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chunk-info {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .copy-btn {
+            background: #4a9eff;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover { background: #3a8eef; }
+        .copy-btn.copied {
+            background: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">eesti<span>.ai</span> — e-etteütlus</div>
+        <div class="status-bar">
+            <div class="mic-meter">
+                <div class="mic-meter-fill" id="mic-fill" style="width: 0%"></div>
+            </div>
+            <span id="mic-label" style="color: #666; font-size: 12px;">MIC</span>
+            <span class="model-badge" id="model-badge">{{ model }}</span>
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-label">Connecting...</span>
+        </div>
+    </header>
+
+    <main>
+        <div id="text-display"></div>
+        <div class="processing-indicator" id="processing">
+            ⏳ Processing chunk...
+        </div>
+    </main>
+
+    <footer>
+        <div class="chunk-info" id="chunk-info">Chunks: 0</div>
+        <button class="copy-btn" id="copy-btn" onclick="copyText()">📋 Copy Full Text</button>
+    </footer>
+
+    <script>
+        const textDisplay = document.getElementById('text-display');
+        const statusDot = document.getElementById('status-dot');
+        const statusLabel = document.getElementById('status-label');
+        const chunkInfo = document.getElementById('chunk-info');
+        const micFill = document.getElementById('mic-fill');
+        const processing = document.getElementById('processing');
+        let lastChunkCount = 0;
+
+        async function poll() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                // Update live status
+                if (data.is_live) {
+                    statusDot.classList.add('live');
+                    statusLabel.textContent = 'LIVE';
+                    statusLabel.style.color = '#e53935';
+                } else {
+                    statusDot.classList.remove('live');
+                    statusLabel.textContent = 'Standby';
+                    statusLabel.style.color = '#666';
+                }
+
+                // Update mic level
+                const level = Math.round(data.mic_level * 100);
+                micFill.style.width = level + '%';
+                micFill.className = 'mic-meter-fill' +
+                    (level > 80 ? ' clipping' : level > 50 ? ' loud' : '');
+
+                // Update text
+                if (data.full_text) {
+                    textDisplay.textContent = data.full_text;
+                    // Auto-scroll to bottom
+                    window.scrollTo(0, document.body.scrollHeight);
+                }
+
+                // Update chunk info
+                const chunks = data.chunks || [];
+                const isProcessing = chunks.some(c => c.status === 'processing');
+                processing.classList.toggle('active', isProcessing);
+
+                chunkInfo.textContent = `Chunks: ${data.chunk_count}`;
+
+                if (data.chunk_count > lastChunkCount) {
+                    lastChunkCount = data.chunk_count;
+                }
+
+            } catch (e) {
+                statusLabel.textContent = 'Disconnected';
+                statusLabel.style.color = '#e53935';
+            }
+        }
+
+        function copyText() {
+            const text = textDisplay.textContent;
+            if (!text) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy Full Text';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Poll every second
+        setInterval(poll, 1000);
+        poll();
+    </script>
+</body>
+</html>

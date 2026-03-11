@@ -1,0 +1,118 @@
+# etteytlus — e-etteütlus AI Competition
+
+Four AI models compete in the Estonian national dictation competition ([e-etteütlus](https://etteytlus.err.ee/)).
+
+Each laptop independently listens, transcribes, and corrects — producing dictation-quality Estonian text in near-real-time.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│  Windows 11 Laptop                              │
+│                                                 │
+│  Laptop Mic ──▶ Whisper (local) ──▶ LLM API    │
+│  (radio audio)  (faster-whisper)    (correction)│
+│                                          │      │
+│                         http://localhost:8080    │
+│                         Live corrected text      │
+└─────────────────────────────────────────────────┘
+```
+
+| Laptop | Model  | API Provider |
+|--------|--------|--------------|
+| 1      | Claude | Anthropic    |
+| 2      | GPT-4o | OpenAI       |
+| 3      | Grok-3 | xAI          |
+| 4      | Gemini | Google       |
+
+## Quick Start (Windows 11)
+
+### 1. Get the code
+
+```
+git clone https://github.com/kaa51k/etteytlus.git
+cd etteytlus
+```
+
+### 2. Install — double-click `install.bat`
+
+Handles everything: Python venv, packages, ffmpeg, Whisper model download.
+
+### 3. Configure
+
+```
+copy config.env.example config.env
+```
+
+Edit `config.env` — set `MODEL=` and the matching API key.
+
+### 4. Run — double-click `start.bat`
+
+Open http://localhost:8080 in your browser. Speak Estonian near the mic.
+
+### 5. Reset — double-click `uninstall.bat`
+
+Removes venv, models, output. Keeps your config and source code.
+For a full reset: `powershell -File uninstall.ps1 -Full`
+
+## Setting Up 4 Laptops
+
+Each laptop gets identical code. Only `config.env` differs:
+
+| Laptop | MODEL=   | API Key Needed       |
+|--------|----------|----------------------|
+| 1      | `claude` | `ANTHROPIC_API_KEY`  |
+| 2      | `gpt`    | `OPENAI_API_KEY`     |
+| 3      | `grok`   | `XAI_API_KEY`        |
+| 4      | `gemini` | `GOOGLE_API_KEY`     |
+
+## Competition Day
+
+1. Place laptops near the radio
+2. `start.bat` on each, ~1 min before broadcast
+3. Verify live indicator + mic signal in browser
+4. Hands off during broadcast (~15–20 min)
+5. Click **Copy Full Text** on each
+6. Paste into https://etteytlus.err.ee/vasta/
+7. Screenshot each submission
+
+## Requirements
+
+- Windows 10/11 (64-bit)
+- Python 3.10–3.12 (auto-installed by `install.bat` if missing)
+- Internet connection (for LLM API calls)
+- Microphone (built-in or USB)
+- GPU optional (NVIDIA + CUDA speeds up Whisper)
+
+## Development
+
+Developed using [Google Antigravity](https://antigravity.google/) with autonomous multi-agent TDD.
+
+```bash
+# Run tests
+python -m pytest tests/ -v
+
+# With coverage
+python -m pytest tests/ --cov=src --cov-report=term-missing
+```
+
+## API Keys
+
+| Model  | Console                     | Approx. cost |
+|--------|-----------------------------|--------------|
+| Claude | console.anthropic.com       | ~$0.10       |
+| GPT    | platform.openai.com         | ~$0.15       |
+| Grok   | console.x.ai               | Free tier    |
+| Gemini | aistudio.google.com         | Free tier    |
+
+## Fallback
+
+Audio chunks are saved locally. If live correction fails, re-run Whisper post-broadcast and submit same day.
+
+## License
+
+MIT — see [LICENSE](LICENSE)
+
+---
+
+**[eesti.ai](https://eesti.ai)** — AI meets the Estonian language 🇪🇪

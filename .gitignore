@@ -1,0 +1,32 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Downloaded binaries
+ffmpeg/
+models/
+
+# Runtime output
+output/
+
+# Config with secrets (template is tracked)
+config.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.zip
+*.tmp
+*.log
