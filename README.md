@@ -27,18 +27,37 @@ Each laptop independently listens, transcribes, and corrects — producing dicta
 
 ## Quick Start (Windows 11)
 
-### 1. Get the code
+You'll repeat these steps on all 4 laptops. Each laptop gets **identical code** — only the config file differs.
 
+> 💡 **Tip:** Download the ZIP (or clone) once, copy the extracted folder to a USB stick, then copy it to each laptop. Each laptop only needs its own `config.env`.
+
+### Prerequisites
+
+- **Windows 10 or 11** (64-bit)
+- **Internet connection** (needed for LLM API calls and first-time downloads)
+- **Microphone** (built-in laptop mic is fine)
+- **GPU is optional** — NVIDIA GPU with CUDA speeds up Whisper, but CPU works fine
+
+That's it. **Git is not required.** Python and ffmpeg are installed automatically by `install.bat`.
+
+### Step 1 — Get the Code
+
+**Option A — Download ZIP** (recommended):
+1. Go to https://github.com/kaa51k/etteytlus
+2. Click the green **Code** button → **Download ZIP**
+3. Extract the ZIP to a folder (e.g. `C:\etteytlus`)
+
+**Option B — Git clone** (if you have Git):
 ```
 git clone https://github.com/kaa51k/etteytlus.git
 cd etteytlus
 ```
 
-### 2. Install — double-click `install.bat`
+### Step 2 — Install — double-click `install.bat`
 
 Handles everything: Python venv, packages, ffmpeg, Whisper model download.
 
-### 3. Configure
+### Step 3 — Configure
 
 ```
 copy config.env.example config.env
@@ -46,11 +65,11 @@ copy config.env.example config.env
 
 Edit `config.env` — set `MODEL=` and the matching API key.
 
-### 4. Run — double-click `start.bat`
+### Step 4 — Run — double-click `start.bat`
 
 Open http://localhost:8080 in your browser. Speak Estonian near the mic.
 
-### 5. Reset — double-click `uninstall.bat`
+### Step 5 — Reset — double-click `uninstall.bat`
 
 Removes venv, models, output. Keeps your config and source code.
 For a full reset: `powershell -File uninstall.ps1 -Full`
@@ -99,7 +118,7 @@ python -m pytest tests/ --cov=src --cov-report=term-missing
 ## API Keys
 
 | Model  | Console                     | Approx. cost |
-|--------|-----------------------------|--------------|
+|--------|-----------------------------|--------------| 
 | Claude | console.anthropic.com       | ~$0.10       |
 | GPT    | platform.openai.com         | ~$0.15       |
 | Grok   | console.x.ai               | Free tier    |
@@ -115,4 +134,4 @@ MIT — see [LICENSE](LICENSE)
 
 ---
 
-**[eesti.ai](https://eesti.ai)** — AI meets the Estonian language 🇪🇪
+Built by [Priit Kaasik](https://github.com/kaa51k) for the [eesti.ai](https://eesti.ai) e-etteütlus AI competition 🇪🇪
