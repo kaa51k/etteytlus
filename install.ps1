@@ -122,7 +122,11 @@ if (Test-Path $ffmpegExe) {
 
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        # Disable progress bar — it slows Invoke-WebRequest by 10-100x in PowerShell 5.1
+        $prevProgress = $ProgressPreference
+        $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -Uri $ffmpegUrl -OutFile $ffmpegZip -UseBasicParsing
+        $ProgressPreference = $prevProgress
 
         Expand-Archive -Path $ffmpegZip -DestinationPath $ffmpegExtract -Force
 
