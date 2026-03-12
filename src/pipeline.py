@@ -54,7 +54,7 @@ def load_config() -> dict:
         "chunk_duration": int(config.get("CHUNK_DURATION", 30)),
         "overlap": int(config.get("OVERLAP_DURATION", 5)),
         "whisper_model": config.get("WHISPER_MODEL", "medium"),
-        "whisper_device": config.get("WHISPER_DEVICE", "auto"),
+        "whisper_device": config.get("WHISPER_DEVICE", "cpu"),
         "web_port": int(config.get("WEB_PORT", 8080)),
     }
 

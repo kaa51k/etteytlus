@@ -7,7 +7,7 @@ from faster_whisper import WhisperModel
 class Transcriber:
     """Transcribes WAV audio files to Estonian text using Whisper."""
 
-    def __init__(self, model_size: str = "medium", device: str = "auto",
+    def __init__(self, model_size: str = "medium", device: str = "cpu",
                  models_dir: str = "models"):
         os.makedirs(models_dir, exist_ok=True)
 
