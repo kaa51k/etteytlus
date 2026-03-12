@@ -191,18 +191,24 @@ Write-Host "  [5/6] Downloading Whisper model (this takes a few minutes on first
 
 New-Item -ItemType Directory -Path $MODELS_DIR -Force | Out-Null
 
+# Pass paths as arguments to avoid backslash unicode-escape errors in Python
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
+
 & $venvPython -c @"
 import os, sys
-os.environ['HF_HOME'] = os.path.join(os.path.dirname(os.path.abspath('$PROJECT_DIR')), 'eesti-ai', 'models')
+models_dir = sys.argv[1]
 try:
     from faster_whisper import WhisperModel
     model = WhisperModel('medium', device='auto', compute_type='auto',
-                         download_root=r'$MODELS_DIR')
+                         download_root=models_dir)
     print('Whisper medium model ready.')
 except Exception as e:
-    print(f'Warning: {e}', file=sys.stderr)
+    print(f'Note: {e}', file=sys.stderr)
     print('Whisper model will download on first run.', file=sys.stderr)
-"@
+"@ $MODELS_DIR 2>&1 | Out-Null
+
+$ErrorActionPreference = $prevEAP
 
 Write-Step "Whisper model check complete"
 
@@ -211,21 +217,27 @@ Write-Step "Whisper model check complete"
 Write-Host "  [6/6] Checking configuration..." -ForegroundColor Yellow
 
 $configFile = Join-Path $PROJECT_DIR "config.env"
+$configExample = Join-Path $PROJECT_DIR "config.env.example"
+
+if (-not (Test-Path $configFile)) {
+    if (Test-Path $configExample) {
+        Copy-Item $configExample $configFile
+        Write-Step "config.env created from template"
+    } else {
+        Write-Err "config.env.example not found - cannot create config"
+    }
+}
 
 if (Test-Path $configFile) {
     $config = Get-Content $configFile -Raw
     if ($config -match "YOUR_.*_KEY_HERE") {
-        Write-Info "config.env exists but API key needs to be set"
         Write-Host ""
-        Write-Host "  IMPORTANT: Edit config.env and set:" -ForegroundColor White
-        Write-Host "    1. MODEL= (claude, gpt, grok, or gemini)" -ForegroundColor White
-        Write-Host "    2. The matching API key" -ForegroundColor White
+        Write-Host "  ** IMPORTANT: Before running start.bat, open config.env and set:" -ForegroundColor Yellow
+        Write-Host "     1. MODEL= (claude, gpt, grok, or gemini)" -ForegroundColor White
+        Write-Host "     2. The matching API key" -ForegroundColor White
     } else {
         Write-Step "config.env looks configured"
     }
-} else {
-    Write-Err "config.env not found - will be created from template"
-    Copy-Item (Join-Path $PROJECT_DIR "config.env.example") $configFile -ErrorAction SilentlyContinue
 }
 
 # --- Done -------------------------------------------------------------------
