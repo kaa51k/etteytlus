@@ -43,7 +43,7 @@ That's it. **Git is not required.** Python and ffmpeg are installed automaticall
 ### Step 1 — Get the Code
 
 1. Go to https://github.com/kaa51k/etteytlus
-2. Click the green **Code** button → **Download ZIP**
+2. Click the **<> Code** button → **Download ZIP**
 3. Extract the ZIP to a folder (e.g. `C:\etteytlus`)
 
 ### Step 2 — Install — double-click `install.bat`
