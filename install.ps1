@@ -214,7 +214,7 @@ if (Test-Path $configFile) {
         Write-Step "config.env looks configured"
     }
 } else {
-    Write-Err "config.env not found — will be created from template"
+    Write-Err "config.env not found - will be created from template"
     Copy-Item (Join-Path $PROJECT_DIR "config.env.example") $configFile -ErrorAction SilentlyContinue
 }
 
