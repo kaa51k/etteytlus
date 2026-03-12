@@ -165,8 +165,14 @@ $venvPip = Join-Path $VENV_DIR "Scripts\pip.exe"
 
 Write-Host "  [4/6] Installing Python packages..." -ForegroundColor Yellow
 
-& $venvPip install --upgrade pip --quiet 2>$null
+# Temporarily relax error handling for native commands (pip writes to stderr even on success)
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
+
+& $venvPip install --upgrade pip --quiet 2>&1 | Out-Null
 & $venvPip install -r (Join-Path $PROJECT_DIR "requirements.txt") --quiet
+
+$ErrorActionPreference = $prevEAP
 
 if ($LASTEXITCODE -eq 0) {
     Write-Step "All packages installed"
